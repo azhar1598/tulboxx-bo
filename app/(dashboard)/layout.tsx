@@ -13,14 +13,14 @@ export default function DashboardLayout({
   const pathname = usePathname();
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {pathname !== "/posts/new" && <Sidebar />}
+      {!pathname.startsWith("/posts/") && <Sidebar />}
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <Header />
         <main
           className={`flex-1 w-full ${
-            pathname === "/posts/new" ? "max-w-full" : "max-w-6xl"
+            pathname.startsWith("/posts/") ? "max-w-full" : "max-w-6xl"
           } mx-auto px-4 py-8`}
         >
           {children}
