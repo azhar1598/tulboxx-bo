@@ -8,7 +8,7 @@ export default function Sidebar() {
       </div>
       <nav className="flex flex-col gap-2">
         <Link
-          href="/dashboard"
+          href="/"
           className="px-4 py-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 font-medium transition"
         >
           Dashboard

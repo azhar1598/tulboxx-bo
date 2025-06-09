@@ -38,7 +38,7 @@ import {
   Bars3Icon,
   Bars4Icon,
 } from "@heroicons/react/24/outline";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 const lowlight = createLowlight(common);
 
@@ -281,6 +281,8 @@ const MenuBar = ({
 function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
 
+  console.log("content", content);
+
   const handleImageUpload = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -292,42 +294,54 @@ function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     reader.readAsDataURL(file);
   };
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Heading.configure({ levels: [1, 2, 3] }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-blue-600 hover:text-blue-800 underline",
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit,
+        Heading.configure({ levels: [1, 2, 3] }),
+        Link.configure({
+          openOnClick: false,
+          HTMLAttributes: {
+            class: "text-blue-600 hover:text-blue-800 underline",
+          },
+        }),
+        Image.configure({
+          HTMLAttributes: {
+            class: "rounded-lg max-w-full",
+          },
+        }),
+        CodeBlockLowlight.configure({
+          lowlight,
+        }),
+        Placeholder.configure({
+          placeholder: "Start writing your blog post...",
+        }),
+        Underline,
+        Strike,
+        HorizontalRule,
+        TextAlign.configure({ types: ["heading", "paragraph"] }),
+      ],
+      content: content || "",
+      onUpdate: ({ editor }) => {
+        onChange(editor.getHTML());
+      },
+      editorProps: {
+        attributes: {
+          class:
+            "prose prose-lg max-w-none focus:outline-none min-h-[300px] p-4",
         },
-      }),
-      Image.configure({
-        HTMLAttributes: {
-          class: "rounded-lg max-w-full",
-        },
-      }),
-      CodeBlockLowlight.configure({
-        lowlight,
-      }),
-      Placeholder.configure({
-        placeholder: "Start writing your blog post...",
-      }),
-      Underline,
-      Strike,
-      HorizontalRule,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-    ],
-    content,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-    },
-    editorProps: {
-      attributes: {
-        class: "prose prose-lg max-w-none focus:outline-none min-h-[300px] p-4",
       },
     },
-  });
+    []
+  );
+
+  useEffect(() => {
+    if (editor && content) {
+      if (editor.getHTML() !== content) {
+        editor.commands.setContent(content);
+      }
+    }
+  }, [content, editor]);
 
   return (
     <div className="relative">

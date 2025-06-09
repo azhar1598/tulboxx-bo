@@ -1,3 +1,6 @@
+"use client";
+import callApi from "@/services/apiService";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 const samplePosts = [
@@ -28,20 +31,35 @@ const samplePosts = [
   },
 ];
 
+function getExcerpt(html: string, maxLength = 200) {
+  // Remove HTML tags
+  const text = html.replace(/<[^>]+>/g, "");
+  // Trim to maxLength
+  return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+}
+
 export default function PostsPage() {
+  const posts = useQuery({
+    queryKey: ["posts"],
+    queryFn: () => callApi.get("/posts"),
+  });
+
+  const postsData = posts.data?.data;
+
+  console.log(posts);
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold text-gray-900">Posts</h2>
         <Link
-          href="/dashboard/posts/new"
+          href="/posts/new"
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold text-base shadow-md transition"
         >
           + New Post
         </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {samplePosts.map((post) => (
+        {postsData?.map((post: any) => (
           <div
             key={post.id}
             className="bg-white border border-gray-100 rounded-xl shadow-sm p-6 flex flex-col gap-2 hover:shadow-lg transition"
@@ -61,14 +79,14 @@ export default function PostsPage() {
               </span>
             </div>
             <div className="text-gray-500 text-sm line-clamp-2 mb-2">
-              {post.excerpt}
+              {getExcerpt(post.content)}
             </div>
             <div className="flex items-center justify-between text-xs text-gray-400 mt-auto">
               <span>{post.date}</span>
               <span>{post.views} views</span>
             </div>
             <Link
-              href={`/posts/${post.id}`}
+              href={`/posts/${post.slug}`}
               className="mt-3 text-blue-600 hover:underline text-sm font-medium self-start"
             >
               Edit Post

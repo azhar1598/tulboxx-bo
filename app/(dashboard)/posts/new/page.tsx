@@ -4,6 +4,9 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import RichTextEditor from "@/app/components/RichTextEditor";
 import SeoScore from "@/app/components/SeoScore";
+import Link from "next/link";
+import { useMutation } from "@tanstack/react-query";
+import callApi from "@/services/apiService";
 
 export default function NewPost() {
   const router = useRouter();
@@ -13,13 +16,27 @@ export default function NewPost() {
   const [keywordInput, setKeywordInput] = useState("");
   const keywordInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // For now, we'll just log the post data
-    console.log({ title, content });
-    // In a real app, we would save this to a database
-    router.push("/");
-  };
+  const isFormValid =
+    title.trim() !== "" && content.trim() !== "" && focusKeywords.length > 0;
+
+  const createPost = useMutation({
+    mutationFn: async (data: {
+      title: string;
+      content: string;
+      authorId: number;
+      focusKeywords: string[];
+    }) => {
+      console.log(data);
+      const response = await callApi.post("/posts", data);
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      router.push("/posts");
+    },
+    onError: (err: Error) => {
+      console.log(err.message);
+    },
+  });
 
   const addKeyword = (kw: string) => {
     const trimmed = kw.trim();
@@ -35,10 +52,20 @@ export default function NewPost() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-2">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 items-start">
-        {/* Main Editor Column */}
-        <div className="flex-1 min-w-0 max-w-4xl mx-auto">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+      <div className="w-full mx-auto flex flex-col md:flex-row gap-8 items-start">
+        <div className="flex-1 min-w-0  mx-auto">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              createPost.mutate({
+                title,
+                content,
+                authorId: 125,
+                focusKeywords,
+              });
+            }}
+            className="flex flex-col gap-8"
+          >
             <input
               type="text"
               id="title"
@@ -60,7 +87,12 @@ export default function NewPost() {
             <div className="flex gap-4 justify-end mt-2">
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 transition text-white px-8 py-3 rounded-lg font-semibold text-base shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                disabled={!isFormValid}
+                className={`${
+                  isFormValid
+                    ? "bg-blue-600 hover:bg-blue-700"
+                    : "bg-blue-300 cursor-not-allowed"
+                } cursor-pointer transition text-white px-8 py-3 rounded-lg font-semibold text-base shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400`}
               >
                 Publish
               </button>
